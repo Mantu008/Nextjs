@@ -1,36 +1,62 @@
 "use client";
 
-import React, { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import ClipLoader from "react-spinners/ClipLoader";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [btnDecable, setButtonDecable] = useState(true);
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(email, password);
-    // Handle form submission, example with axios
+    setLoading(true);
+
     try {
-      const response = await axios.post("/api/login", {
+      const response = await axios.post("/api/users/login", {
         email,
         password,
       });
-      console.log(response.data);
-      // Redirect to another page after successful login
-      router.push("/dashboard"); // or wherever you want to redirect
+
+      if (response.status === 200) {
+        toast.success("Login Successful");
+        router.push("/profile"); // Redirect to your desired page
+      } else {
+        toast.error("Login Failed");
+      }
+
+      setEmail("");
+      setPassword("");
     } catch (error) {
       console.error("Login failed:", error);
+      toast.error("Login Failed");
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (email.length > 0 && password.length > 0) {
+      setButtonDecable(false);
+    } else {
+      setButtonDecable(true);
+    }
+  }, [email, password]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-800">
+      <Toaster />
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-slate-800 font-bold">
-        <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          {loading ? <ClipLoader color="#000000" size={35} /> : "Log In"}
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -66,9 +92,10 @@ export default function LoginPage() {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 hover:cursor-pointer"
+            disabled={btnDecable}
           >
-            Log In
+            {btnDecable ? "Fill all fields" : "Log In"}
           </button>
         </form>
         <p className="mt-4 text-center">
