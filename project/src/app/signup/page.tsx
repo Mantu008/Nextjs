@@ -10,7 +10,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [btnDecable, setButtonDecable] = useState(true);
+  const [btnDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -19,9 +19,9 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Handle form submission, example with axios
     try {
-      const response = await axios.post("/api/users/signup/", {
+      const response = await axios.post("/api/users/signup", {
+        // Ensure correct endpoint
         username,
         email,
         password,
@@ -37,19 +37,21 @@ export default function SignupPage() {
       setUsername("");
       setEmail("");
       setPassword("");
-    } catch (error) {
-      console.error("Signup failed:", error);
-      toast.error("Signup Failed");
+    } catch (error: any) {
+      console.error("Signup failed:", error); // Log the error
+      toast.error(
+        "Signup Failed: " + (error.response?.data?.error || error.message)
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (username.length > 0 && email.length > 0 && password.length > 0) {
-      setButtonDecable(false);
+    if (username && email && password) {
+      setButtonDisabled(false);
     } else {
-      setButtonDecable(true);
+      setButtonDisabled(true);
     }
   }, [username, email, password]);
 
@@ -112,9 +114,9 @@ export default function SignupPage() {
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 hover:cursor-pointer"
-            disabled={btnDecable}
+            disabled={btnDisabled}
           >
-            {btnDecable ? "Fill all fields" : "Sign Up"}
+            {btnDisabled ? "Fill all fields" : "Sign Up"}
           </button>
         </form>
         <p className="mt-4 text-center">

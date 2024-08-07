@@ -1,4 +1,5 @@
 import { connect } from "@/dbConfig/dbConfig";
+import { sendEmail } from "@/helper/mailer";
 import User from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
 const bcryptjs = require("bcryptjs");
@@ -10,37 +11,45 @@ export async function POST(request: NextRequest) {
     const reqBody = await request.json();
     const { username, email, password } = reqBody;
 
-    //check is user is already present or not
-    const user = await User.findOne({ email });
-
-    if (user) {
+    // Validate input
+    if (!username || !email || !password) {
       return NextResponse.json(
-        {
-          error: "user already exist whith given email",
-        },
+        { error: "All fields are required" },
         { status: 400 }
       );
     }
 
-    //hash password
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User already exists with the given email" },
+        { status: 400 }
+      );
+    }
 
+    // Hash password
     const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
+    const hashedPassword = await bcryptjs.hash(password, salt);
 
     const newUser = new User({
       username,
       email,
-      password: hashPassword,
+      password: hashedPassword,
     });
 
-    const saveUser = await newUser.save();
+    const savedUser = await newUser.save();
+
+    // Send verification email
+    await sendEmail({ email, emailType: "VERIFY", userId: savedUser._id });
 
     return NextResponse.json({
-      message: "User Created Sucessfully",
-      sucess: true,
-      saveUser,
+      message: "User created successfully",
+      success: true,
+      savedUser,
     });
   } catch (error: any) {
+    console.error("Signup Error:", error); // Log the error for debugging
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

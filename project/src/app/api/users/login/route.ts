@@ -19,6 +19,18 @@ export async function POST(request: NextRequest) {
       const isMatch = await bcryptjs.compare(password, user.password);
 
       if (isMatch) {
+        //check user is VErified or not
+
+        if (!user.isVerfied) {
+          return NextResponse.json(
+            {
+              message: "Please Veriify The User At Email",
+              success: false,
+            },
+            { status: 401 }
+          );
+        }
+
         // Password is correct
         // Remove the password before sending the response
         const userWithoutPassword = user.toObject();

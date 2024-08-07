@@ -29,14 +29,13 @@ export default function LoginPage() {
         toast.success("Login Successful");
         router.push("/profile"); // Redirect to your desired page
       } else {
-        toast.error("Login Failed");
+        // Show error message from backend
+        toast.error(response.data.message);
       }
-
-      setEmail("");
-      setPassword("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
-      toast.error("Login Failed");
+      // Handle error message from the response
+      toast.error(error.response?.data?.message || "Login Failed");
     } finally {
       setLoading(false);
     }
